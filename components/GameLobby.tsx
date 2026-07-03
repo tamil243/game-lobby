@@ -4,6 +4,8 @@ import React, { useRef, useEffect, useState } from 'react';
 import gsap from 'gsap';
 import PlayerProfile from './PlayerProfile';
 import GameCarousel from './GameCarousel';
+import JackpotPanel from './JackpotPanel';
+import Footer from './Footer';
 import { soundManager } from '@/lib/sounds';
 import { useGameStore } from '@/lib/store';
 import { animateIn, animateClick, animateCountUp, createParticles } from '@/lib/animations';
@@ -32,6 +34,7 @@ export const GameLobby: React.FC = () => {
   const countersRef = useRef<HTMLDivElement>(null);
   const [selectedGameData, setSelectedGameData] = useState<Game | null>(null);
   const [showNotification, setShowNotification] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState<string>('all');
 
   const lobbies: Lobby = {
     featured: [
@@ -191,7 +194,7 @@ export const GameLobby: React.FC = () => {
         if (containerRef.current) {
           const notification = document.createElement('div');
           notification.className =
-            'fixed bottom-6 right-6 glass rounded-lg p-6 text-white max-w-sm z-50';
+            'fixed bottom-48 right-6 glass rounded-lg p-6 text-white max-w-sm z-50';
           notification.style.boxShadow = `0 0 30px ${game.color}40`;
           notification.innerHTML = `
             <div class="font-bold text-lg mb-2">🎮 Game Selected</div>
@@ -221,85 +224,102 @@ export const GameLobby: React.FC = () => {
     }
   };
 
+  const handleCategorySelect = (categoryId: string) => {
+    setSelectedCategory(categoryId);
+    // Here you can filter games based on category
+    console.log('Selected category:', categoryId);
+  };
+
   return (
-    <div
-      ref={containerRef}
-      className="w-full h-full overflow-y-auto p-6 pb-20"
-      style={{
-        scrollBehavior: 'smooth',
-        WebkitOverflowScrolling: 'touch',
-      }}
-    >
-      {/* Header */}
-      <div ref={headerRef} style={{ opacity: 0 }} className="mb-10">
-        <h1 className="text-5xl font-bold text-white mb-2 glow-blue">Game Lobby</h1>
-        <p className="text-gray-400 text-lg">Welcome to the ultimate gaming experience</p>
-      </div>
-
-      {/* Stats */}
+    <div className="w-full h-screen flex flex-col overflow-hidden">
+      {/* Main Content - Scrollable */}
       <div
-        ref={countersRef}
-        style={{ opacity: 0 }}
-        className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-10"
+        ref={containerRef}
+        className="flex-1 overflow-y-auto p-6 pb-40"
+        style={{
+          scrollBehavior: 'smooth',
+          WebkitOverflowScrolling: 'touch',
+        }}
       >
-        <div className="glass rounded-xl p-6">
-          <p className="text-gray-400 text-sm mb-2">Players Online</p>
-          <p className="text-3xl font-bold text-neon-blue" data-counter>
-            0
-          </p>
+        {/* Header */}
+        <div ref={headerRef} style={{ opacity: 0 }} className="mb-10">
+          <h1 className="text-5xl font-bold text-white mb-2 glow-blue">Game Lobby</h1>
+          <p className="text-gray-400 text-lg">Welcome to the ultimate gaming experience</p>
         </div>
-        <div className="glass rounded-xl p-6">
-          <p className="text-gray-400 text-sm mb-2">Active Games</p>
-          <p className="text-3xl font-bold text-neon-purple">
-            {Object.keys(lobbies).length}
-          </p>
+
+        {/* Stats */}
+        <div
+          ref={countersRef}
+          style={{ opacity: 0 }}
+          className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-10"
+        >
+          <div className="glass rounded-xl p-6">
+            <p className="text-gray-400 text-sm mb-2">Players Online</p>
+            <p className="text-3xl font-bold text-neon-blue" data-counter>
+              0
+            </p>
+          </div>
+          <div className="glass rounded-xl p-6">
+            <p className="text-gray-400 text-sm mb-2">Active Games</p>
+            <p className="text-3xl font-bold text-neon-purple">
+              {Object.keys(lobbies).length}
+            </p>
+          </div>
+          <div className="glass rounded-xl p-6">
+            <p className="text-gray-400 text-sm mb-2">Your Status</p>
+            <p className="text-3xl font-bold">
+              <span className="inline-block w-3 h-3 bg-green-500 rounded-full mr-2"></span>
+              <span className="text-neon-blue">Ready</span>
+            </p>
+          </div>
         </div>
-        <div className="glass rounded-xl p-6">
-          <p className="text-gray-400 text-sm mb-2">Your Status</p>
-          <p className="text-3xl font-bold">
-            <span className="inline-block w-3 h-3 bg-green-500 rounded-full mr-2"></span>
-            <span className="text-neon-blue">Ready</span>
-          </p>
+
+        {/* Player Profile */}
+        <PlayerProfile />
+
+        {/* Jackpot Panels */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-10">
+          <JackpotPanel provider="egt" />
+          <JackpotPanel provider="amusnet" />
         </div>
+
+        {/* Featured Games */}
+        <GameCarousel
+          title="Featured Games"
+          games={lobbies.featured}
+          onGameSelect={handleGameSelect}
+        />
+
+        {/* Action Games */}
+        <GameCarousel
+          title="Action"
+          games={lobbies.action}
+          onGameSelect={handleGameSelect}
+        />
+
+        {/* Strategy Games */}
+        <GameCarousel
+          title="Strategy"
+          games={lobbies.strategy}
+          onGameSelect={handleGameSelect}
+        />
+
+        {/* Multiplayer Games */}
+        <GameCarousel
+          title="Multiplayer"
+          games={lobbies.multiplayer}
+          onGameSelect={handleGameSelect}
+        />
+
+        {/* Footer Spacing */}
+        <div className="h-20"></div>
       </div>
 
-      {/* Player Profile */}
-      <PlayerProfile />
-
-      {/* Featured Games */}
-      <GameCarousel
-        title="Featured Games"
-        games={lobbies.featured}
-        onGameSelect={handleGameSelect}
+      {/* Fixed Footer */}
+      <Footer 
+        onCategorySelect={handleCategorySelect} 
+        activeCategory={selectedCategory}
       />
-
-      {/* Action Games */}
-      <GameCarousel
-        title="Action"
-        games={lobbies.action}
-        onGameSelect={handleGameSelect}
-      />
-
-      {/* Strategy Games */}
-      <GameCarousel
-        title="Strategy"
-        games={lobbies.strategy}
-        onGameSelect={handleGameSelect}
-      />
-
-      {/* Multiplayer Games */}
-      <GameCarousel
-        title="Multiplayer"
-        games={lobbies.multiplayer}
-        onGameSelect={handleGameSelect}
-      />
-
-      {/* Footer */}
-      <div className="mt-12 pt-8 border-t border-gray-700 text-center text-gray-400 text-sm">
-        <p>
-          🎮 Game Lobby v1.0 • Powered by Next.js & GSAP • Touch-Optimized for All Devices
-        </p>
-      </div>
     </div>
   );
 };
